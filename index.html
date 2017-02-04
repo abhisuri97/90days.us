@@ -1,305 +1,299 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<head>
-  <title>90days.us</title>
-  <script
-  src="https://code.jquery.com/jquery-3.1.1.min.js"
-  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-  crossorigin="anonymous"></script>
-  <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,700|Share+Tech+Mono" rel="stylesheet">
-</head>
-<style>
-  body {
-    background-color:#000;
-    height: 100vh;
-    width: 100vw;
-    overflow-x: hidden;
-    font-family: 'Open Sans', sans-serif;
-  }
-canvas {
-  background: #000;
-  width:100%;
-  height:100%;
-}
-h1 {
-  color: #FFF;
-  font-size: 70px;
-  font-family: 'Share Tech Mono', monospace;
-}
-.container-fluid {
-  margin: 0px;
-}
-#canvas-container {
-  padding: 0px;
-  height: 100vh;
-}
-#left-panel {
-  padding:0px;
-  height: 100vh;
-  display:none;
-}
-
-#tweets {
-  list-style:none;
-  margin:0;
-  padding: 0;
-  padding-top: 10vh;
-  height: 60vh;
-  overflow-y: hidden;
-}
-#tweet { padding-bottom: 0px }
-li {
-  padding-bottom: 10px;
-  color: #FFF
-}
-#overlay {
-  position: fixed;
-  top: 0px;
-  z-index: 10000;
-  background: rgba(0,0,0,0.8);
-  width: 100vw;
-  height: 100vh;
-}
-.title {
-  padding-top: 20vh
-}
-.title > h1 {
-  font-size: 70px
-}
-
-.hashtag {
-  padding: 5px;
-  background: #666;
-  border-radius: 3px;
-  color: #FFF;
-  font-weight: 300
-}
-.button {
-  font-family: 'Share Tech Mono', monospace;
-  text-align: center;
-  color: #FFF;
-  font-size: 20px;
-  border: 2px solid #FFF;
-  padding: 5px;
-  width: 50%;
-  margin: 0 auto;
-  transition: all 0.5s;
-}
-.button:hover {
-  color: #000;
-  font-size: 20px;
-  border: 2px solid #FFF;
-  padding: 5px;
-  width: 50%;
-  margin: 0 auto;
-  background: #FFF;
-  cursor: pointer;
-}
-.footer {
-  position: fixed;
-  bottom: 10px;
-  right: 20px;
-  color: #FFF;
-  font-weight: 700;
-}
-</style>
-
-<div class="container-fluid">
-  <div class="row" id="overlay">
-    <div class="col-md-6 col-md-offset-3" style="font-align: center">
-      <div class="title"> 
-      <h1 style="text-align: center">90days.us</h1> 
-      <br>
-      <p style="font-size: 20px; color: #FFF">On January 27, 2017, President Donald J. Trump signed an executive order that banned immigrants from Iraq, Syria, Iran, Libya, Somalia, Sudan, and Yemen from entering the United States for a period of 90 days. Since then, thousands of citizens across the world have gathered in protest of this action. <br><br>
-
-        This is their story.</p> 
-      <br><br>
-        <div class="button">Enter</div> 
-    </div>
-    </div>
-  </div>
-  <div class="row" id="content">
-    <div id="canvas-container" class="col-md-7">
-    </div>
-    <div id="left-panel" class="col-md-4">
-      <h1>90days.us</h1>
-      <br>
-        <p style="color: #FFF" id="count"></p>
-        <br>
-        <span class="hashtag">#MuslimBan</span>
-        <span class="hashtag">#NoBanNoWall</span>
-        <span class="hashtag">#Trump</span>
-        <span class="hashtag">#90days</span>
-      <ul id="tweets">
-        <li>Loading Tweets...</li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer"><b>Made by <a href="http://abhinavsuri.com" target="_blank">Abhinav Suri</a></div></b>
-</div>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script src="//d3js.org/queue.v1.min.js"></script>
-<script src="//d3js.org/topojson.v1.min.js"></script>
-<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script>
-  $('.button').on('click', function() {
-    $('#overlay').fadeOut(1000, function() {
-      $('#left-panel').fadeIn(500)
-    })
-  });
-  var loaded = false;
-  var width = $('#canvas-container').width(),
-  height = $('#canvas-container').height(),
-    min = width > height ? height : width;
-var projection = d3.geo.orthographic()
-    .translate([width / 2, height / 2])
-    .scale(min / 2 - 100)
-    .clipAngle(90)
-    .precision(0.6);
-    var canvas = d3.select($('#canvas-container').get(0)).append("canvas")
-    .attr("width", width)
-    .attr("height", height)
-  $(window).on('resize', function() { 
-    console.log('resize!');
-    canvas.attr("width", $('#canvas-container').width()); 
-    canvas.attr("height", $('#canvas-container').height());
-    min = width > height ? height : width;
-    projection.scale(min/ 2 - 100);
-  });
-var c = canvas.node().getContext("2d");
-var path = d3.geo.path()
-    .projection(projection)
-    .context(c);
-canvas.append("path")
-  .datum({type: "Sphere"})
-  .attr("class", "water")
-  .attr("d", path);
-var title = d3.select(".title");
-queue()
-    .defer(d3.json, "/world-110m.json")
-    .defer(d3.tsv, "/world-country-names.tsv")
-    .await(ready);
-function ready(error, world, names) {
-  if (error) throw error;
-  var globe = {type: "Sphere"},
-      land = topojson.feature(world, world.objects.land),
-      countries = topojson.feature(world, world.objects.countries).features,
-      borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; });
-  countries = countries.filter(function(d) {
-    return names.some(function(n) {
-      if (d.id == n.id) return d.name = n.name;
-    });
-  }).sort(function(a, b) {
-    return a.name.localeCompare(b.name);
-  });
-  d3.transition()
-  .duration(5000)
-  .each("start", function() {
-  })
-  .tween("rotate", function() {
-    r = d3.interpolate(projection.rotate(), [0,0]);
-    return function(t) {
-      // Rotate the earth so that the new point is front and center.
-      projection.rotate(r(t));
-      // Erase the canvas.
-      c.clearRect(0, 0, width, height);
-      // Fill in all the landmasses gray.
-      c.fillStyle = "#000", c.beginPath(), path(land), c.fill();
-      // Draw the country borders in white.
-      c.strokeStyle = "#fff", c.lineWidth = .5, c.beginPath(), path(borders), c.stroke();
-      // Draw the earth's circumference in black.
-      c.shadowBlur = 5, c.shadowColor="white", c.beginPath(), path(globe), c.stroke();
-      // Get the canvas-coordinates of the latLong point, and draw a circle there.
-    };
-  });
-  // Open up a socket to the website.
-  var socket = io({ "force new connection" : true });
-  // Yes, I know how ugly this is.
-  function linkify(inputText) {
-    var replacedText, replacePattern1, replacePattern2, replacePattern3;
-
-    //URLs starting with http://, https://, or ftp://
-    replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
-    replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
-
-    //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
-    replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
-    replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
-
-    //Change email addresses to mailto:: links.
-    replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
-    replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
-
-    return replacedText;
-  }
-
-  function makeHTML(tweet) {
-    return [
-      '<li>',
-      '<div class="user">',
-      '<a href="https://twitter.com/', tweet.user, '" target="_blank">', '@', tweet.user, '</a>',
-      '<b> ', tweet.placeName, '</b>',
-      '<a href="https://twitter.com/', tweet.user, '/status/', tweet.id, '" target="_blank"> (Link) </a>',
-      '<div class="tweet">',
-      '<p>',
-      linkify(tweet.text), '</p>', '</div>',
-      '</li>'
-    ].join('');
-  }
-  var tweetCoors = [];
-  // And whenever you get a tweet message from the socket...
-  var queue = [];
-  socket.on('tweet', function(tweet) {
-    console.log(tweet);
-    queue.push(tweet);
-  });
-  socket.on('count', function(count) {
-    console.log(count);
-    $('#count').html(count + ' tweets so far');
-  });
-  setInterval(function() {
-    var tweet = queue.shift();
-    if (tweet) { 
-      tweetCoors.push(tweet.latLong);
-      d3.transition()
-      .duration(3500)
-      .each("start", function() {
-        if (loaded === true) {
-        $('#tweets').prepend($(makeHTML(tweet)).hide().fadeIn(500));
-        } else {
-          $('#tweets').html($(makeHTML(tweet)).hide().fadeIn(500));
-          loaded = true;
+  <head>
+    <title>90days.us</title>
+    <script
+        src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+      <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,700|Share+Tech+Mono" rel="stylesheet">
+      </head>
+      <style>
+        body {
+          background-color:#000;
+          height: 100vh;
+          width: 100vw;
+          overflow-x: hidden;
+          font-family: 'Open Sans', sans-serif;
         }
-      })
-      .tween("rotate", function() {
-        var p = tweet.latLong,
-        r = d3.interpolate(projection.rotate(), [-p[0], -p[1]]);
-        return function(t) {
-          // Rotate the earth so that the new point is front and center.
-          projection.rotate(r(t));
-          // Erase the canvas.
-          c.clearRect(0, 0, width, height);
-          // Fill in all the landmasses gray.
-          c.fillStyle = "#000", c.beginPath(), path(land), c.fill();
-          // Draw the country borders in white.
-          c.strokeStyle = "#fff", c.lineWidth = .5, c.beginPath(), path(borders), c.stroke();
-          // Draw the earth's circumference in black.
-          c.shadowBlur = 5, c.shadowColor="white", c.beginPath(), path(globe), c.stroke();
-          // Get the canvas-coordinates of the latLong point, and draw a circle there.
-          var center = projection(p);
-          for(var i = 0; i < tweetCoors.length; i++) {
-            var pt = projection(tweetCoors[i]);
-            c.fillStyle = "#3498db", c.beginPath(), c.arc(pt[0], pt[1], 1, 0, 2 * Math.PI, false), c.lineWidth = 0.5, c.fill(), c.stroke();
+        canvas {
+          background: #000;
+          width:100%;
+          height:100%;
+        }
+        h1 {
+          color: #FFF;
+          font-size: 70px;
+          font-family: 'Share Tech Mono', monospace;
+        }
+        .container-fluid {
+          margin: 0px;
+        }
+        #canvas-container {
+          padding: 0px;
+          height: 100vh;
+        }
+        #left-panel {
+          padding:0px;
+          height: 100vh;
+          display:none;
+        }
+
+        #tweets {
+          list-style:none;
+          margin:0;
+          padding: 0;
+          padding-top: 10vh;
+          height: 60vh;
+          overflow-y: hidden;
+        }
+        #tweet { padding-bottom: 0px }
+        li {
+          padding-bottom: 10px;
+          color: #FFF
+        }
+        #overlay {
+          position: fixed;
+          top: 0px;
+          z-index: 10000;
+          background: rgba(0,0,0,0.8);
+          width: 100vw;
+          height: 100vh;
+        }
+        .title {
+          padding-top: 20vh
+        }
+        .title > h1 {
+          font-size: 70px
+        }
+
+        .hashtag {
+          padding: 5px;
+          background: #666;
+          border-radius: 3px;
+          color: #FFF;
+          font-weight: 300
+        }
+        .button {
+          font-family: 'Share Tech Mono', monospace;
+          text-align: center;
+          color: #FFF;
+          font-size: 20px;
+          border: 2px solid #FFF;
+          padding: 5px;
+          width: 50%;
+          margin: 0 auto;
+          transition: all 0.5s;
+        }
+        .button:hover {
+          color: #000;
+          font-size: 20px;
+          border: 2px solid #FFF;
+          padding: 5px;
+          width: 50%;
+          margin: 0 auto;
+          background: #FFF;
+          cursor: pointer;
+        }
+        .footer {
+          position: fixed;
+          bottom: 10px;
+          right: 20px;
+          color: #FFF;
+          font-weight: 700;
+        }
+      </style>
+
+      <div class="container-fluid">
+        <div class="row" id="overlay">
+          <div class="col-md-6 col-md-offset-3" style="font-align: center">
+            <div class="title"> 
+              <h1 style="text-align: center">90days.us</h1> 
+              <br>
+              <p style="font-size: 20px; color: #FFF">On January 27, 2017, President Donald J. Trump signed an executive order that banned immigrants from Iraq, Syria, Iran, Libya, Somalia, Sudan, and Yemen from entering the United States for a period of 90 days. Since then, thousands of citizens across the world have gathered in protest of this action. <br><br>
+
+                This is their story.</p> 
+              <br><br>
+              <div class="button">Enter</div> 
+            </div>
+          </div>
+        </div>
+        <div class="row" id="content">
+          <div id="canvas-container" class="col-md-7">
+          </div>
+          <div id="left-panel" class="col-md-4">
+            <h1>90days.us</h1>
+            <br>
+            <p style="color: #FFF" id="count"></p>
+            <br>
+            <span class="hashtag">#MuslimBan</span>
+            <span class="hashtag">#NoBanNoWall</span>
+            <span class="hashtag">#Trump</span>
+            <span class="hashtag">#90days</span>
+            <ul id="tweets">
+              <li>Loading Tweets...</li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer"><b>Made by <a href="http://abhinavsuri.com" target="_blank">Abhinav Suri</a></div></b>
+      </div>
+      <script src="//d3js.org/d3.v3.min.js"></script>
+      <script src="//d3js.org/queue.v1.min.js"></script>
+      <script src="//d3js.org/topojson.v1.min.js"></script>
+      <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+      <script>
+        $('.button').on('click', function() {
+          $('#overlay').fadeOut(1000, function() {
+            $('#left-panel').fadeIn(500)
+          })
+        });
+        var loaded = false;
+        var width = $('#canvas-container').width(),
+        height = $('#canvas-container').height(),
+        min = width > height ? height : width;
+        var projection = d3.geo.orthographic()
+        .translate([width / 2, height / 2])
+        .scale(min / 2 - 100)
+        .clipAngle(90)
+        .precision(0.6);
+        var canvas = d3.select($('#canvas-container').get(0)).append("canvas")
+        .attr("width", width)
+        .attr("height", height)
+        $(window).on('resize', function() { 
+          console.log('resize!');
+          canvas.attr("width", $('#canvas-container').width()); 
+          canvas.attr("height", $('#canvas-container').height());
+          min = width > height ? height : width;
+          projection.scale(min/ 2 - 100);
+        });
+        var c = canvas.node().getContext("2d");
+        var path = d3.geo.path()
+        .projection(projection)
+        .context(c);
+        canvas.append("path")
+        .datum({type: "Sphere"})
+        .attr("class", "water")
+        .attr("d", path);
+        var title = d3.select(".title");
+        queue()
+        .defer(d3.json, "/world-110m.json")
+        .defer(d3.tsv, "/world-country-names.tsv")
+        .await(ready);
+        function ready(error, world, names) {
+          if (error) throw error;
+          var globe = {type: "Sphere"},
+          land = topojson.feature(world, world.objects.land),
+          countries = topojson.feature(world, world.objects.countries).features,
+          borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; });
+          countries = countries.filter(function(d) {
+            return names.some(function(n) {
+              if (d.id == n.id) return d.name = n.name;
+            });
+          }).sort(function(a, b) {
+          return a.name.localeCompare(b.name);
+          });
+          d3.transition()
+          .duration(5000)
+          .each("start", function() {
+          })
+          .tween("rotate", function() {
+            r = d3.interpolate(projection.rotate(), [0,0]);
+            return function(t) {
+              projection.rotate(r(t));
+              c.clearRect(0, 0, width, height);
+              c.fillStyle = "#000", c.beginPath(), path(land), c.fill();
+              c.strokeStyle = "#fff", c.lineWidth = .5, c.beginPath(), path(borders), c.stroke();
+              c.shadowBlur = 5, c.shadowColor="white", c.beginPath(), path(globe), c.stroke();
+            };
+          });
+          // Open up a socket to the website.
+          var socket = io({ "force new connection" : true });
+          // Yes, I know how ugly this is.
+          function linkify(inputText) {
+            var replacedText, replacePattern1, replacePattern2, replacePattern3;
+
+            //URLs starting with http://, https://, or ftp://
+            replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+            replacedText = inputText.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+
+            //URLs starting with "www." (without // before it, or it'd re-link the ones done above).
+            replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+            replacedText = replacedText.replace(replacePattern2, '$1<a href="http://$2" target="_blank">$2</a>');
+
+            //Change email addresses to mailto:: links.
+            replacePattern3 = /(([a-zA-Z0-9\-\_\.])+@[a-zA-Z\_]+?(\.[a-zA-Z]{2,6})+)/gim;
+            replacedText = replacedText.replace(replacePattern3, '<a href="mailto:$1">$1</a>');
+
+            return replacedText;
           }
-          c.fillStyle = "#3498db", c.beginPath(), c.arc(center[0], center[1], 5, 0, 2 * Math.PI, false), c.lineWidth = 0.5, c.fill(), c.stroke();
-        };
-      });
-    }
-  }, 5000);
-};
-d3.select(self.frameElement).style("height", height + "px");
-</script>
+
+          function makeHTML(tweet) {
+            return [
+              '<li>',
+              '<div class="user">',
+              '<a href="https://twitter.com/', tweet.user, '" target="_blank">', '@', tweet.user, '</a>',
+              '<b> ', tweet.placeName, '</b>',
+              '<a href="https://twitter.com/', tweet.user, '/status/', tweet.id, '" target="_blank"> (Link) </a>',
+              '<div class="tweet">',
+              '<p>',
+              linkify(tweet.text), '</p>', '</div>',
+              '</li>'
+    ].join('');
+          }
+          var tweetCoors = [];
+          // And whenever you get a tweet message from the socket...
+          var queue = [];
+          socket.on('tweet', function(tweet) {
+            console.log(tweet);
+            queue.push(tweet);
+          });
+          socket.on('count', function(count) {
+            console.log(count);
+            $('#count').html(count + ' tweets so far');
+          });
+          setInterval(function() {
+            var tweet = queue.shift();
+            if (tweet) { 
+              tweetCoors.push(tweet.latLong);
+              d3.transition()
+              .duration(3500)
+              .each("start", function() {
+                if (loaded === true) {
+                  $('#tweets').prepend($(makeHTML(tweet)).hide().fadeIn(500));
+                } else {
+                  $('#tweets').html($(makeHTML(tweet)).hide().fadeIn(500));
+                  loaded = true;
+                }
+              })
+              .tween("rotate", function() {
+                var p = tweet.latLong,
+                r = d3.interpolate(projection.rotate(), [-p[0], -p[1]]);
+                return function(t) {
+                  // Rotate the earth so that the new point is front and center.
+                  projection.rotate(r(t));
+                  // Erase the canvas.
+                  c.clearRect(0, 0, width, height);
+                  // Fill in all the landmasses gray.
+                  c.fillStyle = "#000", c.beginPath(), path(land), c.fill();
+                  // Draw the country borders in white.
+                  c.strokeStyle = "#fff", c.lineWidth = .5, c.beginPath(), path(borders), c.stroke();
+                  // Draw the earth's circumference in black.
+                  c.shadowBlur = 5, c.shadowColor="white", c.beginPath(), path(globe), c.stroke();
+                  // Get the canvas-coordinates of the latLong point, and draw a circle there.
+                  var center = projection(p);
+                  for(var i = 0; i < tweetCoors.length; i++) {
+                    var pt = projection(tweetCoors[i]);
+                    c.fillStyle = "#3498db", c.beginPath(), c.arc(pt[0], pt[1], 1, 0, 2 * Math.PI, false), c.lineWidth = 0.5, c.fill(), c.stroke();
+                  }
+                  c.fillStyle = "#3498db", c.beginPath(), c.arc(center[0], center[1], 5, 0, 2 * Math.PI, false), c.lineWidth = 0.5, c.fill(), c.stroke();
+                };
+              });
+            }
+          }, 5000);
+          };
+          d3.select(self.frameElement).style("height", height + "px");
+        </script>
