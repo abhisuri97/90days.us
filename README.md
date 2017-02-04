@@ -5,6 +5,8 @@ A website to track tweets globally relating to the immigration ban
 
 ## Setup
 
+- Register an application/as an app developer with Twitter
+
 - Create a `credentials.js` file in the following format
 
 ```
@@ -16,3 +18,8 @@ module.exports = {
 }
 ```
 
+- Run `npm install`
+
+- Run `npm start`
+
+Done :) 
