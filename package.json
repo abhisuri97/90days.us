@@ -1,0 +1,16 @@
+{
+  "name": "90days-us",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Abhinav Suri",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.1",
+    "node-tweet-stream": "^2.0.1",
+    "socket.io": "^1.7.2"
+  }
+}
