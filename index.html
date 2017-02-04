@@ -99,6 +99,13 @@ li {
   background: #FFF;
   cursor: pointer;
 }
+.footer {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  color: #FFF;
+  font-weight: 700;
+}
 </style>
 
 <div class="container-fluid">
@@ -128,9 +135,11 @@ li {
         <span class="hashtag">#Trump</span>
         <span class="hashtag">#90days</span>
       <ul id="tweets">
+        <li>Loading Tweets...</li>
       </ul>
     </div>
   </div>
+  <div class="footer"><b>Made by <a href="http://abhinavsuri.com" target="_blank">Abhinav Suri</a></div></b>
 </div>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="//d3js.org/queue.v1.min.js"></script>
@@ -142,6 +151,7 @@ li {
       $('#left-panel').fadeIn(500)
     })
   });
+  var loaded = false;
   var width = $('#canvas-container').width(),
   height = $('#canvas-container').height(),
     min = width > height ? height : width;
@@ -168,7 +178,6 @@ canvas.append("path")
   .datum({type: "Sphere"})
   .attr("class", "water")
   .attr("d", path);
-
 var title = d3.select(".title");
 queue()
     .defer(d3.json, "/world-110m.json")
@@ -241,7 +250,12 @@ function ready(error, world, names) {
       d3.transition()
       .duration(3500)
       .each("start", function() {
+        if (loaded === true) {
         $('#tweets').prepend($(makeHTML(tweet)).hide().fadeIn(500));
+        } else {
+          $('#tweets').html($(makeHTML(tweet)).hide().fadeIn(500));
+          loaded = true;
+        }
       })
       .tween("rotate", function() {
         var p = tweet.latLong,
